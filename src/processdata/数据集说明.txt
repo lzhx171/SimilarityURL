@@ -1,0 +1,68 @@
+
+执行流程：
+
+	方案一：所有url
+	userurltime.py 
+	url2id.py 
+	userurlidtime.py
+
+	方案二：采样的url
+	userurltime.py
+	url2id.py 
+	sorturlbycount.py
+	urlrandom.py
+	user2spampleurl.py 
+
+重要数据：
+UidUrltime**.txt 从源数据集中提取的用户url，**表示提取开始时间，05表示5月1日，由userurltime.py 得
+url2id2time**last.txt	 url按发布次数的排序，由人工去除了一些不合法的url
+urlsortbyinterval07.txt	 由url2id2time**last.txt取前10000个，并按时间间隔排序
+url2id4exp**-****.txt	 随机出的****个url
+user2spampleurl.txt	 最后得到的文件，计算相似度的输入文件
+Uid2testID.txt		 uid和新的id 的对照表，是由采样的url过滤后得到的用户的新id
+
+
+代码说明：
+userurltime.py  从数据集里面提取用户id、发过的url、以及url发布的时间
+		url的时间以代码中变量startdate = '2011-05-01 00:00:00'为计时0点的秒数，可以在此修改
+		读入文件:	tweets文件夹下所有
+		输出文件：	UidUrltime**.txt  （**为计时0点的月份，05表示从5月1日）
+		输出事例：
+			***
+			123:1       		 	#uid: urlcount
+			http://co.ly	4321234	 	#url	urltime
+
+
+
+url2id.py 	将url转成数字id形式
+		读入文件：	UidUrltime**.txt
+		输出文件：	url2id2time.txt 
+		输出格式：url urlid avurltime（平均发布时间间隔）urlcount(被发布的次数)	
+
+
+userurlidtime.py	将UidUrltime**.txt中的url变成urlid
+			输入：	UidUrltime**.txt  url2id2time.txt
+			输出：	UidUrlId.txt
+
+
+sorturlbycount.py	输入文件：	url2id2time**last.txt
+			输出文件：	urlsortbyinterval**.txt
+			将url按出现次数排序，并取前10000个
+
+
+urlrandom.py	输入文件：	urlsortbyinterval**.txt
+		输出文件:	url2id4exp**-****.txt
+		从urlsortbyinterval**.txt随机选择****个url，作为实验用
+
+
+user2spampleurl.py 	输入文件：url2id4exp**-****.txt、UidUrltime**.txt
+			输出文件：user2spampleurl.txt(计算相似度的输入文件)、Uid2testID.txt
+			从UidUrltime**.txt中找出在url2id4exp**-****.txt出现的url及涉及的用户
+
+
+
+
+数据从2011年5月过滤
+user:		122065
+url:		9753334
+去重url: 	6565032

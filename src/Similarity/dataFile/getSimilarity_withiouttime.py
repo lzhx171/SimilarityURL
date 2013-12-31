@@ -1,0 +1,120 @@
+# -*- coding: utf-8 -*-
+
+import os,sys
+import math
+
+def cur_file_dir():
+    
+    path = sys.path[0]
+    
+    if os.path.isdir(path):
+        return path
+    elif os.path.isfile(path):
+        return os.path.dirname(path)
+
+class URLTIME:
+    def __init__(self,url=-1,urlnum=-1,time=-1):
+        self.url = url
+        self.urlnum = urlnum
+        self.time = time
+
+
+def run():
+
+    inraw = open('E:\dataset\dataFile\user2idexp_10k.txt','r')
+    insample = open('E:\dataset\dataFile\urlsortbyinterval07.txt','r')
+
+    outfile = open('E:\dataset\dataFile\userurlcount_10k.txt','w')
+    outsimilarity = open('E:\dataset\dataFile\Similarity07_10kwithouttime.txt','w')
+
+    urltime = {}    #记录每个url的时间间隔
+    urltocount = {} #记录每个url一共出现次数
+    while 1:
+        line = insample.readline().strip()
+        if line=='':
+            break
+        temp = line.split()
+        urltime[temp[1]] = temp[2]
+        urltocount[temp[1]] = temp[3]   
+    print 'Already process url-id-timeinterval'
+
+    ##获取Userurls
+    count = 0
+    tempuserurl = {}
+    Userurls = {}   #全局保存所有user和url的字典
+    uid = ''
+    total = 0    #计算所有url数
+    while 1:
+        line = inraw.readline()
+        if line=='':
+            break
+        line = line.strip()
+        if len(line)==0:
+            #写文件
+            if count > 0 :
+                outfile.write('\n')
+            Userurls[uid] = []  #对每个user初始化一个列表，保存user发的URLTIME对象
+            outfile.write('U\t'+uid+'\n')
+            for item in tempuserurl.keys():
+                total += tempuserurl[item]
+                Userurls[uid].append(URLTIME(item,tempuserurl[item],urltime[item]))
+                outfile.write('L\t'+str(item)+'\t'+str(tempuserurl[item])+'\t'+str(urltime[item])+'\n')
+            continue
+        temp = line.split()
+        if temp[0]=='U':
+            tempuserurl = {}
+            count += 1
+            uid = temp[1]
+            continue
+       
+        if temp[0]=='L':
+            try:
+                tempuserurl[temp[1]] += 1
+            except :
+                tempuserurl[temp[1]] = 1
+    
+    outfile.close()
+                
+    ##计算相似度
+    userList = Userurls.keys()
+    index = 0
+    for item in userList:   #用户 i
+        print 'process '+ str(index)
+        index += 1
+        #计算用户i的信息
+        info_i = 0     
+        for urli in Userurls[item]:
+            info_i += int(urli.urlnum) * math.log(float(total)/float(urltocount[str(urli.url)])) #* math.exp(float(urli.time)/float(3600))      
+            
+        for another in userList[index:]:    #用户 j
+            info_ij = 0
+            for urli in Userurls[item]:
+                for urlj in Userurls[another]:
+                    if urli.url == urlj.url:
+                        info_ij += (int(urli.urlnum)+int(urlj.urlnum)) * math.log(int(total)/float(urltocount[str(urlj.url)]))#*math.exp(float(urlj.time)/float(3600))
+                        
+            #计算用户j的信息
+            info_j = 0
+            for urlj in Userurls[another]:
+                info_j += int(urlj.urlnum) * math.log(float(total)/float(urltocount[str(urlj.url)]))#*math.exp(float(urlj.time)/float(3600))
+
+            #计算用户i和j相似度
+            if info_ij > 0:
+                similarity = float(info_ij)/(info_i+info_j)
+                outsimilarity.write(str(item)+'\t'+str(another)+'\t'+str(similarity)+'\n')
+                
+            
+        
+
+    
+    inraw.close()
+    insample.close()
+    outsimilarity.close()
+    print 'completed!'
+    
+if __name__=='__main__':
+    run()
+##    URL=URLTIME()
+##    print URL.url
+    
+
